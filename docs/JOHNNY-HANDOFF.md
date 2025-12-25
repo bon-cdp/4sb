@@ -5,10 +5,32 @@ You own everything the user sees before they enter the terminal. Make it beautif
 
 ---
 
+## Current Status (Dec 2025)
+
+**We have a working terminal!**
+
+Test it: `http://34.173.234.131:8080`
+
+This is a GCloud VM running `ttyd` - a battle-tested web terminal that handles WebSocket + xterm.js automatically. Each browser connection gets its own shell session.
+
+### What's Live Now
+- Auto-scaling VM group on GCloud (`fsb-terminal-group`)
+- Pre-installed: git, python3, vim, nano, gcc, tmux
+- Firewall open on port 8080
+- GitHub repo: https://github.com/bon-cdp/4sb
+
+### Current Limitation
+Right now, everyone shares the same VM and filesystem. For production:
+- Each user needs their own VM (we have auto-scaling ready)
+- Each user needs their own home directory (Cloud Filestore coming)
+- Auth needed to assign users to VMs
+
+---
+
 ## Your Stack (Suggested)
 - **Framework**: Svelte (compiles to vanilla JS, tiny bundle)
-- **Terminal**: xterm.js (industry standard, VS Code uses it)
 - **Styling**: Whatever makes it dope - just keep bundle < 100KB
+- **Terminal**: ttyd handles this! Just iframe or redirect to the VM URL
 
 ---
 
@@ -18,7 +40,7 @@ You own everything the user sees before they enter the terminal. Make it beautif
 The hook. Show the vision.
 
 Ideas:
-- Live terminal demo (read-only, showing commands scrolling)
+- Live terminal demo (embed the test URL in an iframe?)
 - "Get your terminal in 10 seconds" CTA
 - No signup required to see what it's about
 - Mobile-first, works on cracked Android screens
@@ -45,35 +67,18 @@ The main event:
 └──────────────────────────────────────┘
 ```
 
-**Requirements:**
-- Uses xterm.js
-- Connects to WebSocket URL from auth flow
-- Mobile keyboard friendly
-- Quick-action buttons for common commands
+**Two Options:**
 
-### 4. Docs Page (`/docs`)
-How to use the terminal. Could even be a read-only terminal itself.
+**Option A: Iframe/Redirect (Easiest)**
+```html
+<!-- Just embed ttyd directly -->
+<iframe src="http://VM_IP:8080" style="width:100%;height:100%;border:none;"></iframe>
+```
 
----
-
-## Integration Points
-
-### Auth → Terminal Handoff
-
-After successful auth, you'll get a WebSocket URL:
-
+**Option B: Custom xterm.js (More Control)**
 ```javascript
-// After magic link validation
-const response = await fetch('/api/assign-instance', {
-  method: 'POST',
-  headers: { 'Authorization': `Bearer ${token}` }
-});
-
-const { ws_url } = await response.json();
-// ws_url = "wss://vm-03.4sb.io/shell?token=abc123"
-
-// Connect xterm.js to this URL
-const socket = new WebSocket(ws_url);
+// ttyd exposes WebSocket at /ws
+const socket = new WebSocket('ws://VM_IP:8080/ws');
 const term = new Terminal();
 term.open(document.getElementById('terminal'));
 
@@ -81,16 +86,54 @@ socket.onmessage = (e) => term.write(e.data);
 term.onData((data) => socket.send(data));
 ```
 
-### Mobile Quick-Actions
+### 4. Docs Page (`/docs`)
+How to use the terminal. Topics to cover:
+- Git basics (clone, push, pull)
+- Python quickstart
+- How to use AI assistants (qwen-code, claude)
+- SSH key setup for GitHub
 
-These buttons just send text to the terminal:
+---
+
+## Integration Flow
+
+### Simple Version (MVP)
+```
+User → Landing Page → Login → Redirect to http://VM_IP:8080
+```
+
+### Full Version (Later)
+```
+1. User logs in
+2. Frontend calls POST /api/assign-instance
+3. Backend assigns user to a warm VM from pool
+4. Backend returns { vm_url: "http://34.x.x.x:8080" }
+5. Frontend redirects/embeds that URL
+```
+
+### API We'll Build (Not Yet Live)
+```
+POST /api/assign-instance
+Headers: Authorization: Bearer <jwt>
+Response: { "vm_url": "http://34.173.234.131:8080", "expires": 3600 }
+```
+
+---
+
+## Mobile Quick-Actions
+
+If using custom xterm.js, add buttons that send commands:
 ```javascript
 document.getElementById('ai-btn').onclick = () => {
-  socket.send('qwen-chat\n');  // or 'claude\n'
+  socket.send('qwen-chat\n');
 };
 
 document.getElementById('push-btn').onclick = () => {
   socket.send('git add . && git commit -m "update" && git push\n');
+};
+
+document.getElementById('python-btn').onclick = () => {
+  socket.send('python3\n');
 };
 ```
 
@@ -100,13 +143,13 @@ document.getElementById('push-btn').onclick = () => {
 
 ### Vibe
 - Terminal-core / Cyber-brutalist
-- High contrast (works in sunlight)
+- High contrast (works in sunlight on cheap phones)
 - Dark mode default (saves battery on OLED)
 - No tracking scripts, no analytics bloat
 
 ### Performance Targets
 - First paint: < 1 second on 3G
-- Total bundle: < 100KB
+- Total bundle: < 100KB gzipped
 - Time to terminal: < 2 seconds after login
 
 ### Mobile Considerations
@@ -117,32 +160,41 @@ document.getElementById('push-btn').onclick = () => {
 
 ---
 
-## What You DON'T Need to Handle
+## What You Handle vs What Backend Handles
 
-The backend handles:
-- VM provisioning
-- Terminal sessions (PTY)
-- User file storage
-- AI integrations
+### You (Frontend)
+- Landing page design
+- Auth flow (magic links, OAuth)
+- User accounts database
+- Terminal page UI/UX
+- Docs
 
-You just need to:
-1. Make it look dope
-2. Handle auth
-3. Connect xterm.js to the WebSocket we give you
+### Us (Backend)
+- VM provisioning & scaling
+- Terminal sessions (ttyd/PTY)
+- User file storage (coming soon)
+- AI integrations (qwen-code, claude)
+- Assigning users to VMs
 
 ---
 
-## Assets We'll Provide
+## Test Right Now
 
-- API endpoint specs (OpenAPI)
-- Test WebSocket URL for development
-- User token format (JWT)
+1. Open http://34.173.234.131:8080 on your phone
+2. Try some commands:
+   ```bash
+   echo "hello 4sb"
+   python3 -c "print('it works')"
+   git --version
+   ```
+3. Think about how to make that experience beautiful
 
 ---
 
 ## Questions?
 
-Ping the backend (us) for:
+Ping the backend team for:
+- New VM IPs if they change
 - WebSocket connection issues
-- Auth flow changes
-- New quick-action commands to add
+- Feature requests (what tools to pre-install)
+- Auth integration when ready
