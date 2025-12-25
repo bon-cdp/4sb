@@ -7,7 +7,7 @@ set -e
 PROJECT_ID="${PROJECT_ID:-forsmallbusiness}"
 REGION="${REGION:-us-central1}"
 ZONE="${ZONE:-us-central1-a}"
-TEMPLATE_NAME="4sb-terminal-template"
+TEMPLATE_NAME="fsb-terminal-template"
 MACHINE_TYPE="${MACHINE_TYPE:-e2-micro}"  # Cheap for dev, use t2a-standard-1 for prod
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -26,7 +26,7 @@ gcloud compute instance-templates create "$TEMPLATE_NAME" \
     --machine-type="$MACHINE_TYPE" \
     --network-interface=network=default,network-tier=PREMIUM \
     --maintenance-policy=MIGRATE \
-    --tags=4sb-terminal \
+    --tags=fsb-terminal \
     --image-family=ubuntu-2204-lts \
     --image-project=ubuntu-os-cloud \
     --boot-disk-size=20GB \

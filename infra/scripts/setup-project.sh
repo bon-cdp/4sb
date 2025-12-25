@@ -29,33 +29,33 @@ gcloud services enable \
 
 echo ">>> Creating firewall rules..."
 # Allow WebSocket traffic
-gcloud compute firewall-rules create allow-4sb-websocket \
+gcloud compute firewall-rules create allow-fsb-websocket \
     --direction=INGRESS \
     --priority=1000 \
     --network=default \
     --action=ALLOW \
     --rules=tcp:8080 \
     --source-ranges=0.0.0.0/0 \
-    --target-tags=4sb-terminal \
+    --target-tags=fsb-terminal \
     2>/dev/null || echo "Firewall rule already exists"
 
 # Allow health checks
-gcloud compute firewall-rules create allow-4sb-health \
+gcloud compute firewall-rules create allow-fsb-health \
     --direction=INGRESS \
     --priority=1000 \
     --network=default \
     --action=ALLOW \
     --rules=tcp:8080 \
     --source-ranges=130.211.0.0/22,35.191.0.0/16 \
-    --target-tags=4sb-terminal \
+    --target-tags=fsb-terminal \
     2>/dev/null || echo "Health check firewall rule already exists"
 
 echo ">>> Creating static IP for load balancer..."
-gcloud compute addresses create 4sb-terminal-ip \
+gcloud compute addresses create fsb-terminal-ip \
     --global \
     2>/dev/null || echo "Static IP already exists"
 
-IP=$(gcloud compute addresses describe 4sb-terminal-ip --global --format='get(address)' 2>/dev/null || echo "pending")
+IP=$(gcloud compute addresses describe fsb-terminal-ip --global --format='get(address)' 2>/dev/null || echo "pending")
 echo "Static IP: $IP"
 
 echo ""

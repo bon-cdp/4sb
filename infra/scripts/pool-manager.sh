@@ -8,7 +8,7 @@ set -e
 
 PROJECT_ID="${PROJECT_ID:-forsmallbusiness}"
 ZONE="${ZONE:-us-central1-a}"
-GROUP_NAME="4sb-terminal-group"
+GROUP_NAME="fsb-terminal-group"
 MIN_WARM="${MIN_WARM:-2}"
 REDIS_HOST="${REDIS_HOST:-localhost}"
 REDIS_PORT="${REDIS_PORT:-6379}"
