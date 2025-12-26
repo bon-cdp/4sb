@@ -9,7 +9,9 @@ You own everything the user sees before they enter the terminal. Make it beautif
 
 **We have a working terminal!**
 
-Test it: `http://34.173.234.131:8080`
+Test it: `http://136.119.47.46:8080`
+
+> **Note:** VM IPs can change. Run `gcloud compute instances list` to get current IPs.
 
 This is a GCloud VM running `ttyd` - a battle-tested web terminal that handles WebSocket + xterm.js automatically. Each browser connection gets its own shell session.
 
@@ -115,7 +117,7 @@ User → Landing Page → Login → Redirect to http://VM_IP:8080
 ```
 POST /api/assign-instance
 Headers: Authorization: Bearer <jwt>
-Response: { "vm_url": "http://34.173.234.131:8080", "expires": 3600 }
+Response: { "vm_url": "http://<VM_IP>:8080", "expires": 3600 }
 ```
 
 ---
@@ -180,7 +182,7 @@ document.getElementById('python-btn').onclick = () => {
 
 ## Test Right Now
 
-1. Open http://34.173.234.131:8080 on your phone
+1. Open http://136.119.47.46:8080 on your phone
 2. Try some commands:
    ```bash
    echo "hello 4sb"
